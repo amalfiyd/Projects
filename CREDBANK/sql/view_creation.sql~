@@ -5,8 +5,10 @@ INNER JOIN topic_tweets as b
 ON a.topics = b.topics
 WHERE a.major_rating = 2
 
-CREATE VIEW majority_turkratings_2_preprocessed AS
-SELECT WEEK(timestamp) as my_week, MONTH(timestamp) as my_month, YEAR(timestamp) as my_year, SUM(count) as my_count
+CREATE VIEW majority_turkratings_2_preprocessed_d AS
+SELECT DAY(timestamp) as my_day, MONTH(timestamp) as my_month, YEAR(timestamp) as my_year, SUM(count) as my_count
 FROM majority_turkratings_2
-GROUP BY my_week
+GROUP BY my_day
 ORDER BY timestamp ASC
+
+FIND HOW TO QUANTIFY GROWTH
