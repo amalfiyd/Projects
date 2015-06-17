@@ -114,7 +114,7 @@ def json_to_csv(line):
 # -------------------------
 # ----- MAIN FUNCTION -----
 # -------------------------
-base_dir = "/home/masdarcis/Projects/dataset/twitter_febtomay14/03"
+base_dir = "/media/masdarcis/ed7e2c64-5a1a-4d6f-b66f-705facea7865/twitter_febtomay14/03"
 files = sorted(list_files(base_dir))
 out_dir = "/home/masdarcis/Projects/dataset/twitter_febtomay14/mar14_data.csv"
 filewrite = open(out_dir, "w")
