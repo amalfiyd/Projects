@@ -8,9 +8,15 @@ import re
 import scipy
 
 basedir = "/home/masdarcis/Projects/dataset/CREDBANK/"
-tweets_filename = "cred_event_SearchTweets_searchedtweetfile.data"
+searchdir = basedir + "separated_searchtweets/"
+tweets_filenames = []
 cred_filename = 'cred_event_TurkRatings.data'
 
+# WARNING OUT DATA
+# out_file = open(basedir + "out_result.data","w")
+# out_file.write("meanCred\tavg_growth\n")
+
+# Functions
 def dt2mins(dtin):
     return int((dtin.toordinal()+dtin.hour/24.0+dtin.minute/(24*60.0))*10000)
 
@@ -23,41 +29,66 @@ def tweetlist2timestamp(tweetlist):
     return output
 
 def average_growth(farray):
-	temp = []
-	for i in range(1, len(farray)):
-		value = (farray[i]-farray[i-1]) / farray[i-1]
-		temp.append(value)
-	return sum(temp) / len(temp)
+    temp = []
+    for i in range(1, len(farray)):
+        value = (farray[i]-farray[i-1]) / farray[i-1]
+        temp.append(value)
+    if len(temp) == 0:
+        return 0
+    else:
+        return sum(temp) / len(temp)
 
-# Loading in events' credibility scores
-cred=pd.read_csv(basedir + cred_filename, sep="\t")
-ratings_tmp=[eval(tmp) for tmp in cred.Cred_Ratings]
-ratings=[np.mean([int(tmp) for tmp in tmp1]) for tmp1 in ratings_tmp]
-cred['meanCred']=ratings
-# credDict=dict(zip(cred.topic_key,cred.meanCred))
+# # Prepare the tweet_filenames
+# x = 50
+# while x <= 1350:
+#     tweets_filenames.append(searchdir + "out_" + str(x) + ".data")
+#     x = x + 50
 
-# Loading in tweets file with count, only 10 rows
-# HANDLING FOR ALL TOPICS INCLUDED
-tweets=pd.read_csv(basedir+tweets_filename, sep="\t", nrows=25)
+# # Loading in events' credibility scores
+# cred=pd.read_csv(basedir + cred_filename, sep="\t")
+# ratings_tmp=[eval(tmp) for tmp in cred.Cred_Ratings]
+# ratings=[np.mean([int(tmp) for tmp in tmp1]) for tmp1 in ratings_tmp]
+# cred['meanCred']=ratings
+# cred.drop(['topic_terms','Reasons','Cred_Ratings'],axis=1, inplace=True)
+    
+# # Load and Write meanCred and avg_growth
+# for tweet_file in tweets_filenames:
+#     print tweet_file
 
-# Merge dataset into 1 dataframe
-cred.drop(['topic_terms','Reasons','Cred_Ratings'],axis=1, inplace=True)
-dataset = pd.merge(tweets, cred, how="inner", on=['topic_key'])
-dataset['kde_data'] = [np.asarray(tweetlist2timestamp(tmp)) for tmp in dataset['ListOf_tweetid_author_createdAt_tuple']]
-dataset.drop(['ListOf_tweetid_author_createdAt_tuple'], axis=1, inplace=True)
-dataset.sort(['meanCred'], ascending=[1], inplace=True)
-dataset['b_t'] = [np.mean(x)-np.std(x) for x in dataset['kde_data']]
-dataset['t_t'] = [np.mean(x)+np.std(x) for x in dataset['kde_data']]
-dataset['kde_data_filtered'] = [np.asarray(x['kde_data'][(x['kde_data'] >= x['b_t']) & (x['kde_data'] <= x['t_t'])]) for index,x in dataset.iterrows()]
-dataset['histogram'] = [pl.hist(x, bins=50) for x in dataset['kde_data']]
-dataset['avg_growth'] = [average_growth(x[0][x[0] > 0]) for x in dataset['histogram']]
+#     # Loading in tweets file with count
+#     tweets=pd.read_csv(tweet_file, sep="\t")
+
+#     # Merge dataset into 1 dataframe
+#     dataset = pd.merge(tweets, cred, how="inner", on=['topic_key'])
+#     dataset['kde_data'] = [np.asarray(tweetlist2timestamp(tmp)) for tmp in dataset['ListOf_tweetid_author_createdAt_tuple']]
+#     dataset.drop(['ListOf_tweetid_author_createdAt_tuple'], axis=1, inplace=True)
+#     dataset.sort(['meanCred'], ascending=[1], inplace=True)
+#     dataset['b_t'] = [np.mean(x)-np.std(x) for x in dataset['kde_data']]
+#     dataset['t_t'] = [np.mean(x)+np.std(x) for x in dataset['kde_data']]
+#     dataset['kde_data_filtered'] = [np.asarray(x['kde_data'][(x['kde_data'] >= x['b_t']) & (x['kde_data'] <= x['t_t'])]) for index,x in dataset.iterrows()]
+#     dataset['histogram'] = [pl.hist(x, bins=50) for x in dataset['kde_data']]
+#     dataset['avg_growth'] = [average_growth(x[0][x[0] > 0]) for x in dataset['histogram']]
+
+#     for i in dataset[['meanCred', 'avg_growth']].iterrows():
+#         out_string = str(i[1][0]) + "\t" + str(i[1][1]) + "\n"
+#         out_file.write(out_string)
+
+#     # break
+
+# out_file.close()
+
+# Load meanCred and avg_growth
+results = pd.read_csv(basedir + "out_result.data", sep="\t")
+results.sort(['meanCred'], ascending=[1], inplace=True)
 
 # Scatter plot for average
 pl.cla()
-x = np.array(dataset['meanCred'])
-y = np.array(dataset['avg_growth'])
+x = np.array(results['meanCred'])
+y = np.array(results['avg_growth'])
 pl.scatter(x, y)
 pl.show()
+
+# ------------------------------
 
 # # draw to analyze ROW 1 ONLY
 # figure = pl.figure(figsize=(10,60))
