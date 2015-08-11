@@ -12,10 +12,6 @@ searchdir = basedir + "separated_searchtweets/"
 tweets_filenames = []
 cred_filename = 'cred_event_TurkRatings.data'
 
-# WARNING OUT DATA
-out_file = open(basedir + "out_result.data","w")
-out_file.write("meanCred\tavg_growth\n")
-
 # Functions
 def dt2mins(dtin):
     return int((dtin.toordinal()+dtin.hour/24.0+dtin.minute/(24*60.0))*10000)
@@ -53,10 +49,18 @@ ratings_tmp=[eval(tmp) for tmp in cred.Cred_Ratings]
 ratings=[np.mean([int(tmp) for tmp in tmp1]) for tmp1 in ratings_tmp]
 cred['meanCred']=ratings
 cred.drop(['topic_terms','Reasons','Cred_Ratings'],axis=1, inplace=True)
-    
+
+# CHANGE THIS
+print "Processing 4-6.data..."
+
+# WARNING OUT DATA
+# CHANGE THIS
+out_file = open(basedir + "new_out_result_4-6.data","w")
+out_file.write("meanCred\tavg_growth\n")
+
 # Load and Write meanCred and avg_growth
 for tweet_file in tweets_filenames:
-    print tweet_file
+    # print tweet_file + " of " + xy
 
     # Loading in tweets file with count
     tweets=pd.read_csv(tweet_file, sep="\t")
@@ -70,13 +74,16 @@ for tweet_file in tweets_filenames:
     b_t = []
     t_t = []
     for iterate in dataset.kde_data.iteritems():
-        print iterate
+        # print iterate
         kdetemp = sb.kdeplot(iterate[1], cumulative=True)
         xc,yc = kdetemp.get_lines()[0].get_data()
         s1 = pd.Series(xc, name="x")
         s2 = pd.Series(yc, name="y")
         pddf = pd.concat([s1,s2], axis=1)
-        df_process = pddf[(pddf.y >= 0.1) & (pddf.y <= 0.9)]
+        
+        # CHANGE THESE
+        df_process = pddf[(pddf.y >= 0.4) & (pddf.y <= 0.6)]
+        
         if len(df_process > 0):
             b_t.append(df_process.head(1).x.item())
             t_t.append(df_process.tail(1).x.item())
@@ -96,8 +103,6 @@ for tweet_file in tweets_filenames:
     for i in dataset[['meanCred', 'avg_growth']].iterrows():
         out_string = str(i[1][0]) + "\t" + str(i[1][1]) + "\n"
         out_file.write(out_string)
-
-    # break
 
 out_file.close()
 
